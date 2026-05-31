@@ -1,0 +1,30 @@
+# Terraform
+terraform/*.tfvars
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/crash.log
+
+# GCP credentials
+*.json
+!package.json
+!package-lock.json
+
+# Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
