@@ -1,0 +1,11 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: k8s-gcp-app-backendconfig
+  namespace: production
+spec:
+  healthCheck:
+    checkIntervalSec: 15
+    port: 3000
+    type: HTTP
+    requestPath: /
