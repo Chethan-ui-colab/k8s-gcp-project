@@ -1,0 +1,65 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: k8s-gcp-app-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: app.alerts
+      rules:
+
+        # Alert if app pod is down
+        - alert: AppPodDown
+          expr: |
+            kube_deployment_status_replicas_available{
+              deployment="k8s-gcp-app",
+              namespace="production"
+            } == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "App has no running pods"
+            description: "k8s-gcp-app has 0 available pods for over 1 minute."
+
+        # Alert if pod keeps restarting
+        - alert: PodCrashLooping
+          expr: |
+            rate(kube_pod_container_status_restarts_total{
+              namespace="production"
+            }[5m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod is crash looping"
+            description: "Pod {{ $labels.pod }} is restarting frequently."
+
+        # Alert if node memory is too high
+        # Adjusted threshold for e2-medium (4GB RAM)
+        - alert: NodeHighMemory
+          expr: |
+            (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+            / node_memory_MemTotal_bytes * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node memory usage above 85%"
+            description: "Node memory usage is critically high."
+
+        # Alert if node disk is running low
+        # Important for pd-standard 30GB disk
+        - alert: NodeDiskRunningLow
+          expr: |
+            (node_filesystem_size_bytes{mountpoint="/"}
+            - node_filesystem_free_bytes{mountpoint="/"})
+            / node_filesystem_size_bytes{mountpoint="/"} * 100 > 80
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node disk usage above 80%"
+            description: "Disk space is running low on the node."
